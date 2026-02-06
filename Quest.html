@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quests | Titan Battlefront Wiki</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050505;
+            --sidebar-bg: #0d0d0d;
+            --card-bg: rgba(15, 15, 15, 0.95);
+            --gold-accent: #f0c32d; 
+            --border-metal: #2a1f16;
+            --sidebar-width-closed: 70px;
+            --sidebar-width-open: 280px;
+            --transition-speed: 0.4s;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+            color: #e0e0e0;
+            background: 
+                linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85)), 
+                url('https://cdn.discordapp.com/attachments/1345518106772246660/1467298900246401058/Titan_battlefronts_wod.png?ex=698088d6&is=697f3756&hm=0f89064258144e62341491fd3f35493384c7a2385c72ec7bc4bcfd26b6ba5f22&') no-repeat center center;
+            background-size: cover;
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        #sidebar {
+            width: var(--sidebar-width-closed);
+            height: 100vh;
+            background: var(--sidebar-bg);
+            border-right: 2px solid var(--border-metal);
+            position: fixed;
+            left: 0; top: 0;
+            z-index: 1000;
+            transition: width var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        #sidebar:hover { width: var(--sidebar-width-open); }
+
+        .sidebar-header {
+            padding: 20px 15px;
+            display: flex; align-items: center; gap: 15px;
+            border-bottom: 1px solid var(--border-metal);
+            min-width: var(--sidebar-width-open);
+        }
+        .header-logo-img { width: 40px; height: 40px; border: 1px solid var(--gold-accent); object-fit: cover; }
+        .header-text { opacity: 0; transition: 0.2s; white-space: nowrap; }
+        #sidebar:hover .header-text { opacity: 1; }
+        .header-text b { display: block; color: #fff; font-size: 0.9rem; letter-spacing: 1px; }
+        .header-text span { color: var(--gold-accent); font-size: 0.7rem; font-weight: bold; }
+
+        .nav-item {
+            display: flex; align-items: center;
+            padding: 18px 22px; text-decoration: none;
+            color: #888; transition: 0.3s; white-space: nowrap;
+        }
+        .nav-item i { font-size: 1.2rem; min-width: 25px; text-align: center; }
+        .nav-item span { margin-left: 20px; font-weight: bold; text-transform: uppercase; font-size: 0.85rem; opacity: 0; transition: 0.2s; }
+        #sidebar:hover .nav-item span { opacity: 1; }
+        .nav-item:hover { color: var(--gold-accent); background: rgba(240, 195, 45, 0.05); }
+        .nav-item.active { color: var(--gold-accent); background: rgba(240, 195, 45, 0.1); border-left: 3px solid var(--gold-accent); }
+
+        /* --- CONTENT --- */
+        #main-content {
+            margin-left: var(--sidebar-width-closed);
+            flex-grow: 1;
+            padding: 60px 40px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .page-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 8vw, 5rem);
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 15px;
+            margin: 0;
+            text-shadow: 0 0 30px rgba(240, 195, 45, 0.3);
+            text-align: center;
+        }
+        .page-title span { color: var(--gold-accent); }
+
+        .divider {
+            width: 100px;
+            height: 4px;
+            background: var(--gold-accent);
+            margin: 20px 0 50px 0;
+        }
+
+        /* --- QUESTS --- */
+        .quest-container {
+            max-width: 1100px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .quest-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-metal);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .quest-header {
+            padding: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            background: linear-gradient(90deg, rgba(240,195,45,0.03) 0%, transparent 100%);
+        }
+
+        .quest-header h2 {
+            margin: 0;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: #fff;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .quest-header i.arrow { color: var(--gold-accent); transition: var(--transition-speed); }
+
+        .quest-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0, 1, 0, 1);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .quest-item.active { border-color: var(--gold-accent); transform: translateY(-2px); }
+        .quest-item.active .quest-content { max-height: 2000px; transition: max-height 1s ease-in-out; }
+        .quest-item.active i.arrow { transform: rotate(180deg); }
+
+        .quest-inner { padding: 30px; border-top: 1px solid var(--border-metal); }
+
+        .objective-title {
+            color: var(--gold-accent);
+            font-size: 0.8rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 3px;
+        }
+        .objective-title::after { content: ''; flex-grow: 1; height: 1px; background: rgba(240, 195, 45, 0.2); }
+
+        .quest-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .task-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            transition: 0.3s;
+        }
+        .task-card:hover {
+            background: rgba(240, 195, 45, 0.05);
+            border-color: rgba(240, 195, 45, 0.4);
+            transform: scale(1.02);
+        }
+
+        .task-info { display: flex; align-items: flex-start; gap: 15px; }
+        .task-info i { color: var(--gold-accent); font-size: 1.2rem; width: 25px; text-align: center; }
+        .task-name { font-size: 0.9rem; font-weight: 500; color: #ccc; line-height: 1.4; }
+
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--gold-accent);
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-top: auto;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* Исправленный блок награды */
+        .reward-footer {
+            background: rgba(240, 195, 45, 0.05);
+            border: 1px dashed var(--gold-accent);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .reward-item {
+            display: flex;
+            align-items: center;
+            gap: 15px; /* Расстояние между "Unlock Character:" и ссылкой */
+        }
+
+        .reward-label { color: var(--gold-accent); font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }
+
+        .reward-link {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            gap: 12px; /* Расстояние между иконкой и текстом внутри ссылки */
+            transition: transform 0.2s ease;
+        }
+
+        .reward-link:hover {
+            transform: scale(1.05);
+        }
+
+        .reward-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--gold-accent);
+            object-fit: cover;
+            box-shadow: 0 0 10px rgba(240, 195, 45, 0.3);
+        }
+
+        .reward-val { 
+            color: #fff; 
+            font-size: 1.1rem; 
+            font-weight: bold; 
+            font-family: 'Orbitron'; 
+            text-shadow: 0 0 10px var(--gold-accent); 
+        }
+
+        @media (max-width: 768px) {
+            #main-content { padding: 40px 15px; }
+            .page-title { font-size: 3rem; letter-spacing: 5px; }
+            .quest-grid { grid-template-columns: 1fr; }
+            .reward-item { flex-direction: column; gap: 10px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<nav id="sidebar">
+    <div class="sidebar-header">
+        <img src="https://cdn.discordapp.com/attachments/1345518106772246660/1467298900615626773/WodBattlefronts.png?ex=697fe017&is=697e8e97&hm=d0fc7b32cb29439bde0ff32f3a4d195abde8f42a4eca29d3eb60042bdcd5f6b5&" alt="TB" class="header-logo-img">
+        <div class="header-text">
+            <b>TITAN BATTLEFRONT</b>
+            <span>OFFICIAL DATABASE</span>
+        </div>
+    </div>
+    <a href="MainMenu.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
+    <a href="Quest.html" class="nav-item active"><i class="fa-solid fa-scroll"></i><span>Quests</span></a>
+    <a href="#" class="nav-item"><i class="fa-solid fa-clock-rotate-left"></i><span>Update Logs</span></a>
+    <a href="#" class="nav-item"><i class="fa-solid fa-user-ninja"></i><span>Characters</span></a>
+    <a href="#" class="nav-item"><i class="fa-solid fa-shield-halved"></i><span>Mechanics</span></a>
+    <a href="#" class="nav-item" style="margin-top: auto; padding-bottom: 25px;"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+</nav>
+
+<main id="main-content">
+    <h1 class="page-title">QUE<span>STS</span></h1>
+    <div class="divider"></div>
+
+    <div class="quest-container">
+        
+        <div class="quest-item">
+            <div class="quest-header">
+                <h2>Void Destroyed (Polycephaly)</h2>
+                <i class="fa-solid fa-chevron-down arrow"></i>
+            </div>
+            <div class="quest-content">
+                <div class="quest-inner">
+                    <span class="objective-title">Required Tasks</span>
+                    <div class="quest-grid">
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-khanda"></i>
+                                  <div class="task-name">Kill Player as Character Undying Tank.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>10 Kills</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-bolt"></i>
+                                <div class="task-name">Kill Player as Character NightBlade.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>15 Kills</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-skull-crossbones"></i>
+                                <div class="task-name">Kill Character Solar Annihilator as NightBlade.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>3 Kills</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-shield-heart"></i>
+                                <div class="task-name">Kill Character Solar Annihilator as Character Undying Tank.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>2 Kills</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-ghost"></i>
+                                <div class="task-name">Kill With Ability Radiant Player as Characater NightBlade.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>1 Kills</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-clock"></i>
+                                <div class="task-name">Play as Character Undying Tank.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>800 Seconds</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-hourglass-half"></i>
+                                <div class="task-name">Play as Character NightBlade.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>1600 Seconds</span></div>
+                        </div>
+                    </div>
+                    <div class="reward-footer">
+                        <div class="reward-item">
+                            <span class="reward-label">Unlock Character:</span>
+                            <a href="Test" class="reward-link">
+                                <img src="https://cdn.discordapp.com/attachments/1282401001483010140/1467896603590398087/Claws4.png?ex=69820cbe&is=6980bb3e&hm=f01c44b421b8ad362a9a23685488701b039d3c878a7b84b9f2713853d457c1f7&" alt="Void Destroyer" class="reward-icon">
+                                <span class="reward-val">Void Destroyer</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+      <div class="quest-item">
+            <div class="quest-header">
+                <h2>Executor</h2>
+                <i class="fa-solid fa-chevron-down arrow"></i>
+            </div>
+            <div class="quest-content">
+                <div class="quest-inner">
+                    <span class="objective-title">Required Tasks</span>
+                    <div class="quest-grid">
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-crosshairs"></i>
+                                <div class="task-name">Kill Player as Character Void Destroyer.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>20 Kills</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-mountain"></i>
+                                <div class="task-name">Kill Character Solar Annihilator as Character Void Destroyer.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>1 Kill</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-user-shield"></i>
+                                <div class="task-name">Kill With Ability Radiant Player as Character NightBlade.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>2 Kills</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-skull-crossbones"></i>
+                                <div class="task-name">Kill Player as Character StormBreaker.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>20 Kills</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-wind"></i>
+                                <div class="task-name">Kill Character Solar Annihilator as Character StormBreaker.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>3 Kills</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-hand-fist"></i>
+                                <div class="task-name">Play as Character StormBreaker</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>2400 Seconds</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-flag"></i>
+                                <div class="task-name">Play as Character Void Destroyer.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>1600 Seconds</span></div>
+                        </div>
+                    </div>
+                    <div class="reward-footer">
+    <div class="reward-item">
+        <span class="reward-label">Unlock Character:</span>
+        <a href="Executor.html" class="reward-link">
+            <img src="https://cdn.discordapp.com/attachments/1282401001483010140/1467896781193875650/Jugger2.png?ex=69820ce8&is=6980bb68&hm=02f3a2cd3ab37f603dc3a8e938c7503b58f31c0b16d4a7fa752f04c2df8569b0&" alt="Executor Icon" class="reward-icon">
+            <span class="reward-val">Executor</span>
+        </a>
+    </div>
+</div>
+                </div>
+            </div>
+        </div>
+
+<div class="quest-item">
+            <div class="quest-header">
+                <h2>Juggernaut</h2>
+                <i class="fa-solid fa-chevron-down arrow"></i>
+            </div>
+            <div class="quest-content">
+                <div class="quest-inner">
+                    <span class="objective-title">Required Tasks</span>
+                    <div class="quest-grid">
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                <div class="task-name">Kill Character Solar Annihilator as Character Executor</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>10 Kills</span></div>
+                        </div>
+
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-fire"></i>
+                                <div class="task-name">Play as Characater Solar Annihilator.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>3600 Seconds</span></div>
+                        </div>
+
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-bullseye"></i>
+                                <div class="task-name">Kill Character Undying Tank as Character Solar Annihilator.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>10 Kills</span></div>
+                        </div>
+
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-skull"></i>
+                                <div class="task-name">Kill Character NightBlade Undying Tank as Character Solar Annihilator.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>25 Kills</span></div>
+                        </div>
+
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-hand-fist"></i>
+                                <div class="task-name">Take Damage while using Shield as Character Solar Annihilator.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>Take 500 DMG</span></div>
+                        </div>
+
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-bolt"></i>
+                                <div class="task-name">Land a Purple Sphere into NightBlade as Character Solar Annihilator.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>Land 5 Time</span></div>
+                        </div>
+</div>
+                   <div class="reward-footer">
+    <div class="reward-item">
+        <span class="reward-label">Unlock Skin:</span>
+        <a href="Juggernaut.html" class="reward-link">
+            <img src="https://cdn.discordapp.com/attachments/1282401001483010140/1467896781193875650/Jugger2.png?ex=69820ce8&is=6980bb68&hm=02f3a2cd3ab37f603dc3a8e938c7503b58f31c0b16d4a7fa752f04c2df8569b0&" alt="Icon" class="reward-icon">
+            <span class="reward-val">Juggernaut</span>
+        </a>
+    </div>
+</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="quest-item">
+            <div class="quest-header">
+                <h2>Glitch-Soldier</h2>
+                <i class="fa-solid fa-chevron-down arrow"></i>
+            </div>
+            <div class="quest-content">
+                <div class="quest-inner">
+                    <span class="objective-title">Required Tasks</span>
+                    <div class="quest-grid">
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-crosshairs"></i>
+                                <div class="task-name">Kill Character Unstoppable Hero as Character Juggernaut.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>5 Kills</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-mountain"></i>
+                                <div class="task-name">Kill Character Unstoppable Hero as Character Executor.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>5 Kills</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-user-shield"></i>
+                                <div class="task-name">Kill Character Unstoppable Hero as Character Void Destroyer.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>5 Kills</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-skull-crossbones"></i>
+                                <div class="task-name">Play as Character Unstoppable Hero.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>7200 Seconds</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-wind"></i>
+                                <div class="task-name">Take Damage while using Sheild as Character Unstoppable Hero.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>Take 5000 DMG</span></div>
+                        </div>  
+                    </div>
+                    <div class="reward-footer">
+    <div class="reward-item">
+        <span class="reward-label">Unlock Character:</span>
+        <a href="Glitch.html" class="reward-link">
+            <img src="https://cdn.discordapp.com/attachments/1282401001483010140/1467897177593352429/GlitchFrame_1.png?ex=69820d47&is=6980bbc7&hm=1b070a4b7b8c5c7fd14b1f1db9eb1c45962ddca1160ba1f45eb25a634c93c947&" alt="Executor Icon" class="reward-icon">
+            <span class="reward-val">Glitch-Soldier</span>
+        </a>
+        </div>
+</div>
+                </div>
+            </div>
+        </div>
+    
+    <div class="quest-item">
+            <div class="quest-header">
+                <h2>DoomBringer</h2>
+                <i class="fa-solid fa-chevron-down arrow"></i>
+            </div>
+            <div class="quest-content">
+                <div class="quest-inner">
+                    <span class="objective-title">Required Tasks</span>
+                    <div class="quest-grid">
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                <div class="task-name">Kill Character StormBreaker as Character Executor.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>25 Kills</span></div>
+                        </div>
+
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-fire"></i>
+                                <div class="task-name">Kill Character NightBlade as Character Void Destroyer.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>25 Kills</span></div>
+                        </div>
+
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-bullseye"></i>
+                                <div class="task-name">Kill Character Solar Annihilator as Character Juggernaut.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>25 Kills</span></div>
+                        </div>
+
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-skull"></i>
+                                <div class="task-name">Kill Character Unstoppable Hero as Character Glitch-Soldier.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>25 Kills</span></div>
+                        </div>
+
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-hand-fist"></i>
+                                <div class="task-name">Kill Character Undying Tank as Character NightBlade.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>25 Kills</span></div>
+                        </div>
+
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-bolt"></i>
+                                <div class="task-name">Kill Character StormBreaker as Character Unstoppable Hero.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>25 Kills</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-bolt"></i>
+                                <div class="task-name">Play as Character Executor.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>3600 Seconds</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-bolt"></i>
+                                <div class="task-name">Play as Character Void Destroyer.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>3600 Seconds</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-bolt"></i>
+                                <div class="task-name">Play as Character Juggernaut.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>3600 Seconds</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-bolt"></i>
+                                <div class="task-name">Take Damage while using Sheild as Character Solar Annihilator.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>Take 500 DMG</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-bolt"></i>
+                                <div class="task-name">Take Damage while using Sheild as Character Unstoppable Hero.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>Take 500 DMG</span></div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-info">
+                                <i class="fa-solid fa-bolt"></i>
+                                <div class="task-name">Take Damage while using Sheild as Character Juggernaut.</div>
+                            </div>
+                            <div class="task-meta"><span>Required</span><span>Take 500 DMG</span></div>
+                        </div>
+</div>
+                   <div class="reward-footer">
+    <div class="reward-item">
+        <span class="reward-label">Unlock Skin:</span>
+        <a href="DoomBringer.html" class="reward-link">
+            <img src="https://cdn.discordapp.com/attachments/1282401001483010140/1467897093946347564/Doom2.png?ex=69820d33&is=6980bbb3&hm=fcd224aab1d7af18c446e59a0c19b27df7ea6b4eb2799d69605ab600dfc63f6a&" alt="Icon" class="reward-icon">
+            <span class="reward-val">DoomBringer</span>
+        </a>
+    </div>
+</div>
+                </div>
+            </div>
+        </div>
+      
+        
+    </main>
+
+<script>
+    document.querySelectorAll('.quest-header').forEach(header => {
+        header.addEventListener('click', () => {
+            const item = header.parentElement;
+            const isActive = item.classList.contains('active');
+
+            document.querySelectorAll('.quest-item').forEach(el => {
+                el.classList.remove('active');
+            });
+
+        
+            if (!isActive) {
+                item.classList.add('active');
+            }
+        });
+    });
+</script>
+</body>
+</html>
